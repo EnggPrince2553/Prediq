@@ -1,12 +1,9 @@
 import { useState } from 'react';
-import { waitlistCategories } from '../data/mockData';
 
 export default function WaitlistForm() {
   const [formData, setFormData] = useState({
-    name: '',
-    username: '',
     email: '',
-    category: '',
+    username: '',
   });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -23,7 +20,7 @@ export default function WaitlistForm() {
     if (typeof gtag !== 'undefined') {
       gtag('event', 'waitlist_signup', {
         event_category: 'engagement',
-        event_label: formData.category,
+        event_label: formData.username || 'anonymous',
         value: 1,
       });
     }
@@ -57,7 +54,7 @@ export default function WaitlistForm() {
         </div>
 
         {/* Form Card */}
-        <div className="glass rounded-3xl p-6 sm:p-10 max-w-xl mx-auto glow-border">
+        <div className="glass rounded-3xl p-6 sm:p-8 max-w-md mx-auto glow-border">
           {submitted ? (
             /* Success State */
             <div className="text-center py-8">
@@ -68,7 +65,7 @@ export default function WaitlistForm() {
               </div>
               <h3 className="text-2xl font-bold text-white mb-2">You&apos;re on the list! 🎉</h3>
               <p className="text-slate-400 mb-4">
-                Welcome to the Prediq community, <span className="text-neon-cyan font-semibold">@{formData.username || 'predictor'}</span>
+                Welcome to the Prediq community, <span className="text-neon-cyan font-semibold">@{formData.username}</span>
               </p>
               <div className="glass rounded-xl px-5 py-3 inline-block">
                 <p className="text-xs text-slate-500 mb-1">Your Badge</p>
@@ -77,43 +74,9 @@ export default function WaitlistForm() {
             </div>
           ) : (
             /* Form */
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Name */}
-              <div>
-                <label htmlFor="waitlist-name" className="block text-sm font-medium text-slate-400 mb-2">Full Name</label>
-                <input
-                  type="text"
-                  id="waitlist-name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  placeholder="Your name"
-                  className="w-full bg-dark-800 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-neon-cyan/50 focus:ring-1 focus:ring-neon-cyan/20 transition-all text-sm"
-                />
-              </div>
-
-              {/* Username */}
-              <div>
-                <label htmlFor="waitlist-username" className="block text-sm font-medium text-slate-400 mb-2">Choose Username</label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-sm">@</span>
-                  <input
-                    type="text"
-                    id="waitlist-username"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    required
-                    placeholder="username"
-                    className="w-full bg-dark-800 border border-white/10 rounded-xl pl-8 pr-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-neon-cyan/50 focus:ring-1 focus:ring-neon-cyan/20 transition-all text-sm"
-                  />
-                </div>
-              </div>
-
+            <form onSubmit={handleSubmit} className="space-y-4">
               {/* Email */}
               <div>
-                <label htmlFor="waitlist-email" className="block text-sm font-medium text-slate-400 mb-2">Email Address</label>
                 <input
                   type="email"
                   id="waitlist-email"
@@ -121,34 +84,31 @@ export default function WaitlistForm() {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  placeholder="you@email.com"
-                  className="w-full bg-dark-800 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-neon-cyan/50 focus:ring-1 focus:ring-neon-cyan/20 transition-all text-sm"
+                  placeholder="Enter your email address"
+                  className="w-full bg-dark-800/80 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-neon-cyan/50 focus:ring-1 focus:ring-neon-cyan/20 transition-all text-sm"
                 />
               </div>
 
-              {/* Category */}
-              <div>
-                <label htmlFor="waitlist-category" className="block text-sm font-medium text-slate-400 mb-2">Favorite Category</label>
-                <select
-                  id="waitlist-category"
-                  name="category"
-                  value={formData.category}
+              {/* Username */}
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm">@</span>
+                <input
+                  type="text"
+                  id="waitlist-username"
+                  name="username"
+                  value={formData.username}
                   onChange={handleChange}
                   required
-                  className="w-full bg-dark-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon-cyan/50 focus:ring-1 focus:ring-neon-cyan/20 transition-all text-sm appearance-none cursor-pointer"
-                >
-                  <option value="" disabled className="text-slate-600">Select a category</option>
-                  {waitlistCategories.map((cat, i) => (
-                    <option key={i} value={cat} className="bg-dark-800">{cat}</option>
-                  ))}
-                </select>
+                  placeholder="Choose username"
+                  className="w-full bg-dark-800/80 border border-white/10 rounded-xl pl-8 pr-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-neon-cyan/50 focus:ring-1 focus:ring-neon-cyan/20 transition-all text-sm"
+                />
               </div>
 
               {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full btn-primary py-4 text-base flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full btn-primary py-3.5 text-base flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>
@@ -163,7 +123,7 @@ export default function WaitlistForm() {
                 )}
               </button>
 
-              <p className="text-center text-xs text-slate-600">
+              <p className="text-center text-xs text-slate-600 pt-2">
                 Free forever for beta users. No spam, ever.
               </p>
             </form>
@@ -173,3 +133,4 @@ export default function WaitlistForm() {
     </section>
   );
 }
+
