@@ -11,17 +11,17 @@ export default {
       },
       colors: {
         'dark': {
-          900: '#0a0a1a',
-          800: '#0f0f23',
-          700: '#141432',
-          600: '#1a1a3e',
-          500: '#252550',
+          900: '#06130d', // Deepest forest green/black
+          800: '#0a1d14', // Very dark forest green
+          700: '#0f271c', // Dark forest green
+          600: '#153124', // Medium forest green
+          500: '#204634', // Forest green accent
         },
         'neon': {
-          cyan: '#00f0ff',
-          purple: '#a855f7',
-          pink: '#ec4899',
-          blue: '#3b82f6',
+          cyan: '#10b981', // Emerald money green
+          purple: '#059669', // Medium emerald green
+          pink: '#34d399', // Mint green
+          blue: '#10b981', // Emerald green
         },
       },
       animation: {

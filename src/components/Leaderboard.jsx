@@ -1,8 +1,34 @@
-import { leaderboard } from '../data/mockData';
+import { leaderboard as initialLeaderboard } from '../data/mockData';
 
-export default function Leaderboard() {
-  const topThree = leaderboard.slice(0, 3);
-  const rest = leaderboard.slice(3);
+export default function Leaderboard({ user, balance }) {
+  let list = [...initialLeaderboard];
+
+  if (user && user.loggedIn) {
+    const userRep = Math.max(5000 + (balance - 1000) * 5, 0);
+    const userRecord = {
+      rank: null,
+      name: `@${user.username}`,
+      avatar: '👤',
+      reputation: userRep,
+      accuracy: 100,
+      streak: balance > 1000 ? Math.floor((balance - 1000) / 100) : 0,
+      badges: ['🏅'],
+      level: userRep >= 8000 ? 'Expert' : userRep >= 6000 ? 'Advanced' : 'New Predictor',
+      levelColor: userRep >= 8000 ? 'text-cyan-400' : userRep >= 6000 ? 'text-green-400' : 'text-slate-400',
+    };
+
+    list = list.filter((item) => item.name !== `@${user.username}`);
+    list.push(userRecord);
+  }
+
+  // Sort list by reputation descending
+  list.sort((a, b) => b.reputation - a.reputation);
+
+  // Reassign ranks
+  const rankedList = list.map((item, idx) => ({ ...item, rank: idx + 1 }));
+
+  const topThree = rankedList.slice(0, 3);
+  const rest = rankedList.slice(3);
 
   const rankColors = [
     'from-yellow-400 to-amber-500',   // Gold

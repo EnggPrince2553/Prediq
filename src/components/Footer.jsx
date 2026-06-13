@@ -1,3 +1,5 @@
+import logo from '../assets/logo.png';
+
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
@@ -8,10 +10,12 @@ export default function Footer() {
           {/* Logo & Tagline */}
           <div className="text-center md:text-left">
             <div className="flex items-center gap-2 justify-center md:justify-start mb-2">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-neon-cyan to-neon-purple flex items-center justify-center font-extrabold text-dark-900 text-xs">
-                P
-              </div>
-              <span className="text-lg font-bold gradient-text">Prediq</span>
+              <img
+                src={logo}
+                alt="Prediq Logo"
+                className="w-7 h-7 rounded-md object-contain shadow-sm shadow-emerald-500/20"
+              />
+              <span className="text-lg font-bold bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent">Prediq</span>
             </div>
             <p className="text-sm text-slate-500">
               The Social Prediction Network

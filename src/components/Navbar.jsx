@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import logo from '../assets/logo.png';
 
 const navLinks = [
   { label: 'Features', href: '#features' },
@@ -7,7 +8,7 @@ const navLinks = [
   { label: 'Communities', href: '#communities' },
 ];
 
-export default function Navbar() {
+export default function Navbar({ user, balance, openModal }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -46,11 +47,13 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
-            <a href="#" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-neon-cyan to-neon-purple flex items-center justify-center font-extrabold text-dark-900 text-sm">
-                P
-              </div>
-              <span className="text-xl font-bold gradient-text">Prediq</span>
+            <a href="#" className="flex items-center gap-2.5 group">
+              <img
+                src={logo}
+                alt="Prediq Logo"
+                className="w-8 h-8 rounded-lg object-contain transition-transform duration-300 group-hover:scale-105 shadow-md shadow-emerald-500/20"
+              />
+              <span className="text-xl font-bold bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent">Prediq</span>
             </a>
 
             {/* Desktop Nav */}
@@ -69,13 +72,31 @@ export default function Navbar() {
 
             {/* Desktop CTA */}
             <div className="hidden md:flex items-center gap-3">
-              <a
-                href="#waitlist"
-                onClick={(e) => handleNavClick(e, '#waitlist')}
-                className="btn-primary text-sm px-5 py-2.5 inline-block"
-              >
-                Join Beta
-              </a>
+              {user?.loggedIn ? (
+                <>
+                  <div className="flex items-center gap-2 bg-dark-800/80 px-3.5 py-1.5 rounded-full border border-emerald-500/20 shadow-inner">
+                    <span className="text-xs font-semibold text-emerald-400">@{user.username}</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-dark-800/80 px-3.5 py-1.5 rounded-full border border-yellow-500/20 shadow-inner">
+                    <span className="text-sm">🪙</span>
+                    <span className="text-sm font-bold text-yellow-400">{balance.toLocaleString()}</span>
+                  </div>
+                  <button
+                    onClick={openModal}
+                    className="btn-primary text-sm px-5 py-2 inline-block font-semibold"
+                  >
+                    🔮 New Predict
+                  </button>
+                </>
+              ) : (
+                <a
+                  href="#waitlist"
+                  onClick={(e) => handleNavClick(e, '#waitlist')}
+                  className="btn-primary text-sm px-5 py-2.5 inline-block"
+                >
+                  Join Beta
+                </a>
+              )}
             </div>
 
             {/* Mobile Hamburger */}
@@ -120,13 +141,34 @@ export default function Navbar() {
               {link.label}
             </a>
           ))}
-          <a
-            href="#waitlist"
-            onClick={(e) => handleNavClick(e, '#waitlist')}
-            className="btn-primary text-lg px-8 py-3 mt-4 inline-block"
-          >
-            Join Beta
-          </a>
+          {user?.loggedIn ? (
+            <div className="flex flex-col items-center gap-4 mt-4">
+              <div className="flex items-center gap-2 bg-dark-800/80 px-4 py-2 rounded-full border border-emerald-500/20 shadow-inner">
+                <span className="text-sm font-semibold text-emerald-400">@{user.username}</span>
+              </div>
+              <div className="flex items-center gap-2 bg-dark-800/80 px-4 py-2 rounded-full border border-yellow-500/20 shadow-inner">
+                <span className="text-base">🪙</span>
+                <span className="text-base font-bold text-yellow-400">{balance.toLocaleString()} PCOIN</span>
+              </div>
+              <button
+                onClick={() => {
+                  setMobileOpen(false);
+                  openModal();
+                }}
+                className="btn-primary text-lg px-8 py-3 mt-2 inline-block"
+              >
+                🔮 New Predict
+              </button>
+            </div>
+          ) : (
+            <a
+              href="#waitlist"
+              onClick={(e) => handleNavClick(e, '#waitlist')}
+              className="btn-primary text-lg px-8 py-3 mt-4 inline-block"
+            >
+              Join Beta
+            </a>
+          )}
         </div>
       </div>
     </>

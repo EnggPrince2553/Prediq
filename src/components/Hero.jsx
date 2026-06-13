@@ -1,6 +1,6 @@
 import { heroCards } from '../data/mockData';
 
-export default function Hero() {
+export default function Hero({ onJoinClick, onClaimClick }) {
   const handleScroll = (e, href) => {
     e.preventDefault();
     const el = document.querySelector(href);
@@ -28,7 +28,7 @@ export default function Hero() {
             </div>
 
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight mb-6">
-              <span className="gradient-text">Predict Smarter.</span>
+              <span className="bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent">Predict Smarter.</span>
               <br />
               <span className="text-white">Build Credibility.</span>
             </h1>
@@ -39,20 +39,18 @@ export default function Hero() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <a
-                href="#waitlist"
-                onClick={(e) => handleScroll(e, '#waitlist')}
-                className="btn-primary text-base px-8 py-3.5 text-center"
+              <button
+                onClick={onJoinClick}
+                className="btn-primary text-base px-8 py-3.5 text-center cursor-pointer"
               >
                 🚀 Join Early Access
-              </a>
-              <a
-                href="#waitlist"
-                onClick={(e) => handleScroll(e, '#waitlist')}
-                className="btn-secondary text-base px-8 py-3.5 text-center"
+              </button>
+              <button
+                onClick={onClaimClick}
+                className="btn-secondary text-base px-8 py-3.5 text-center cursor-pointer"
               >
                 @ Claim Username
-              </a>
+              </button>
             </div>
 
             {/* Social Proof */}

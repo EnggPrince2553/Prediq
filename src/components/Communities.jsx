@@ -1,6 +1,6 @@
 import { communities } from '../data/mockData';
 
-export default function Communities() {
+export default function Communities({ onCommunityClick }) {
   return (
     <section id="communities" className="relative section-padding overflow-hidden">
       {/* Background */}
@@ -22,6 +22,7 @@ export default function Communities() {
           {communities.map((community, i) => (
             <div
               key={i}
+              onClick={() => onCommunityClick && onCommunityClick(community.name)}
               className={`glass rounded-3xl p-6 card-hover border ${community.borderColor} group cursor-pointer`}
             >
               {/* Header */}

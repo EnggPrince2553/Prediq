@@ -4,11 +4,11 @@
 
 /* ===== Base Styles ===== */
 :root {
-  --color-dark-900: #0a0a1a;
-  --color-dark-800: #0f0f23;
-  --color-neon-cyan: #00f0ff;
-  --color-neon-purple: #a855f7;
-  --color-neon-pink: #ec4899;
+  --color-dark-900: #06130d;
+  --color-dark-800: #0a1d14;
+  --color-neon-cyan: #10b981;
+  --color-neon-purple: #059669;
+  --color-neon-pink: #34d399;
 }
 
 * {

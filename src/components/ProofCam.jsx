@@ -1,16 +1,27 @@
 import { useState, useEffect } from 'react';
 
-export default function ProofCam() {
+export default function ProofCam({ awardCoins }) {
   const [currentDay, setCurrentDay] = useState(7);
   const totalDays = 14;
   const [verified, setVerified] = useState(false);
   const [capturing, setCapturing] = useState(false);
 
   const handleCapture = () => {
+    if (currentDay >= totalDays) {
+      alert("Challenge already completed!");
+      return;
+    }
     setCapturing(true);
     setTimeout(() => {
       setCapturing(false);
       setVerified(true);
+      
+      const nextDay = currentDay + 1;
+      setCurrentDay(nextDay);
+      if (awardCoins) {
+        awardCoins(100, `Completed Day ${nextDay} check-in: +100 PCOIN! 🎉`);
+      }
+
       setTimeout(() => setVerified(false), 3000);
     }, 1500);
   };
