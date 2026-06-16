@@ -15,11 +15,13 @@ import { predictions as initialPredictions } from './data/mockData';
 function App() {
   // Global States
   const [user, setUser] = useState({ loggedIn: false, username: '', email: '' });
-  const [balance, setBalance] = useState(1000);
+  const [balance, setBalance] = useState(5000);
   const [predictionsList, setPredictionsList] = useState(initialPredictions);
   const [likedCards, setLikedCards] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
+  const [freePredictionsUsed, setFreePredictionsUsed] = useState(0);
+  const FREE_PREDICTION_LIMIT = 5;
 
   // Scroll-triggered animations
   useEffect(() => {
@@ -93,7 +95,7 @@ function App() {
   // Register user from WaitlistForm
   const logInUser = (username, email) => {
     setUser({ loggedIn: true, username, email });
-    showToast(`Welcome @${username}! Claimed 1,000 PCOIN starting balance. 🚀`);
+    showToast(`Welcome @${username}! Claimed 5,000 PCOIN starting balance. 🚀`);
   };
 
   // Handle new prediction creation
@@ -207,6 +209,9 @@ function App() {
           setPredictionsList={setPredictionsList}
           showToast={showToast}
           user={user}
+          freePredictionsUsed={freePredictionsUsed}
+          setFreePredictionsUsed={setFreePredictionsUsed}
+          freePredictionLimit={FREE_PREDICTION_LIMIT}
         />
         
         <Features />
@@ -263,10 +268,11 @@ function ModalForm({ balance, onClose, onSubmit }) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="glass rounded-3xl p-6 sm:p-8 max-w-md w-full border border-white/10 shadow-2xl glow-border">
+      {/* Modal card — responsive max-height and overflow scroll to prevent clipping */}
+      <div className="glass rounded-3xl p-6 sm:p-8 max-w-md w-full border border-white/10 shadow-2xl glow-border max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-2xl font-bold text-white">🔮 Create Prediction</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-2.5 -m-2.5">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>

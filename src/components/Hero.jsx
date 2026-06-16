@@ -71,8 +71,8 @@ export default function Hero({ onJoinClick, onClaimClick }) {
             </div>
           </div>
 
-          {/* Right — Floating Cards */}
-          <div className="flex-1 relative w-full max-w-lg lg:max-w-xl">
+          {/* Right — Floating Cards — responsive bounds to prevent layout overflow */}
+          <div className="flex-1 relative w-full max-w-lg lg:max-w-xl overflow-hidden sm:overflow-visible py-4">
             <div className="relative h-[400px] sm:h-[450px]">
               {heroCards.map((card, i) => {
                 const positions = [
@@ -90,7 +90,7 @@ export default function Hero({ onJoinClick, onClaimClick }) {
                 return (
                   <div
                     key={i}
-                    className={`absolute ${positions[i]} ${animations[i]} w-[160px] sm:w-[180px]`}
+                    className={`absolute ${positions[i]} ${animations[i]} w-[135px] min-[375px]:w-[155px] sm:w-[180px]`}
                   >
                     <div
                       className={`glass rounded-2xl p-4 border ${card.borderColor} card-hover cursor-default`}

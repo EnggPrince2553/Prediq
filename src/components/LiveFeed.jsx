@@ -113,11 +113,11 @@ export default function LiveFeed({ predictionsList, likedCards, setLikedCards, r
               </div>
 
               <div>
-                {/* Bottom Row — Interactions */}
+                {/* Bottom Row — Interactions — padded to 44px touch targets on mobile */}
                 <div className="flex items-center justify-between pt-3 border-t border-white/5">
                   <button
                     onClick={() => toggleLike(pred.id)}
-                    className={`flex items-center gap-1.5 text-xs transition-colors ${
+                    className={`flex items-center gap-1.5 text-xs transition-colors py-3 px-2 -my-2 ${
                       likedCards[pred.id]
                         ? 'text-neon-pink'
                         : 'text-slate-500 hover:text-neon-pink'
@@ -128,13 +128,13 @@ export default function LiveFeed({ predictionsList, likedCards, setLikedCards, r
                     </svg>
                     {likedCards[pred.id] ? pred.likes + 1 : pred.likes}
                   </button>
-                  <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500 py-3 px-2">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
                     {pred.comments}
                   </div>
-                  <button onClick={handleShare} className="flex items-center gap-1 text-xs text-slate-500 hover:text-neon-cyan transition-colors">
+                  <button onClick={handleShare} className="flex items-center gap-1 text-xs text-slate-500 hover:text-neon-cyan transition-colors py-3 px-2 -my-2">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                     </svg>
@@ -142,18 +142,18 @@ export default function LiveFeed({ predictionsList, likedCards, setLikedCards, r
                   </button>
                 </div>
 
-                {/* Resolve Box */}
+                {/* Resolve Box — custom py-3 for 44px accessibility on mobile */}
                 {pred.isUserOwned && (
                   <div className="mt-4 pt-3 border-t border-white/5 flex gap-2">
                     <button
                       onClick={() => resolvePrediction(pred.id, true)}
-                      className="flex-1 bg-green-500/20 hover:bg-green-500/35 text-green-400 text-xs font-semibold py-2 rounded-xl transition-all"
+                      className="flex-1 bg-green-500/20 hover:bg-green-500/35 text-green-400 text-xs font-semibold py-3 sm:py-2 rounded-xl transition-all"
                     >
                       🏆 Resolve Win
                     </button>
                     <button
                       onClick={() => resolvePrediction(pred.id, false)}
-                      className="flex-1 bg-red-500/20 hover:bg-red-500/35 text-red-400 text-xs font-semibold py-2 rounded-xl transition-all"
+                      className="flex-1 bg-red-500/20 hover:bg-red-500/35 text-red-400 text-xs font-semibold py-3 sm:py-2 rounded-xl transition-all"
                     >
                       😢 Resolve Loss
                     </button>

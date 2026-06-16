@@ -99,11 +99,11 @@ export default function Navbar({ user, balance, openModal }) {
               )}
             </div>
 
-            {/* Mobile Hamburger */}
+            {/* Mobile Hamburger — enlarged to 44x44px for touch target accessibility */}
             <button
               id="mobile-menu-toggle"
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden relative w-10 h-10 flex items-center justify-center"
+              className="md:hidden relative w-11 h-11 flex items-center justify-center"
               aria-label="Toggle menu"
             >
               <div className="flex flex-col gap-1.5">
@@ -136,7 +136,7 @@ export default function Navbar({ user, balance, openModal }) {
               key={link.href}
               href={link.href}
               onClick={(e) => handleNavClick(e, link.href)}
-              className="text-2xl font-semibold text-slate-300 hover:text-neon-cyan transition-colors"
+              className="text-2xl font-semibold text-slate-300 hover:text-neon-cyan transition-colors py-2.5 w-full text-center"
             >
               {link.label}
             </a>

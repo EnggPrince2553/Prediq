@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 
-export default function FifaWorldCup({ balance, setBalance, setPredictionsList, showToast, user }) {
+export default function FifaWorldCup({ balance, setBalance, setPredictionsList, showToast, user, freePredictionsUsed, setFreePredictionsUsed, freePredictionLimit }) {
+  const canPredictFree = freePredictionsUsed < freePredictionLimit;
+  const freeRemaining = freePredictionLimit - freePredictionsUsed;
   const [activeTab, setActiveTab] = useState('matches'); // 'matches' | 'outrights' | 'standings'
   const [activeGroup, setActiveGroup] = useState('Group A'); // For standings
   const [bettingMatch, setBettingMatch] = useState(null); // Match ID currently opening the stake panel
@@ -295,9 +297,12 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
 
   const handlePlaceBet = (e) => {
     e.preventDefault();
-    if (!user.loggedIn) {
-      showToast("🔑 Please register/sign in at the Waitlist below to place predictions!");
+    // If not logged in and free predictions exhausted, block
+    if (!user.loggedIn && !canPredictFree) {
+      showToast("🔑 You've used all 5 free predictions! Please sign up to continue.");
       setBettingMatch(null);
+      const el = document.querySelector('#waitlist');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
       return;
     }
 
@@ -313,6 +318,11 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
 
     // Deduct Balance
     setBalance((prev) => prev - betStake);
+
+    // Increment free prediction counter if not logged in
+    if (!user.loggedIn) {
+      setFreePredictionsUsed((prev) => prev + 1);
+    }
 
     // Update Match Object
     setMatches((prevMatches) =>
@@ -333,7 +343,7 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
 
     const newPred = {
       id: Date.now(),
-      user: { name: user.username, avatar: '⚽' },
+      user: { name: user.loggedIn ? user.username : 'Guest Predictor', avatar: '⚽' },
       category: 'Sports',
       categoryColor: 'from-green-400 to-emerald-500',
       title: `🏆 FIFA World Cup: Staked ${betStake} PCOIN on ${predictedText}`,
@@ -347,13 +357,21 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
     };
 
     setPredictionsList((prev) => [newPred, ...prev]);
-    showToast(`🏆 Bet placed: ${predictedText} for ${betStake} PCOINS!`);
+
+    if (!user.loggedIn) {
+      const remaining = freeRemaining - 1;
+      showToast(`🏆 Bet placed: ${predictedText} for ${betStake} PCOINS! (${remaining} free left)`);
+    } else {
+      showToast(`🏆 Bet placed: ${predictedText} for ${betStake} PCOINS!`);
+    }
     setBettingMatch(null);
   };
 
   const handlePlaceChampionBet = () => {
-    if (!user.loggedIn) {
-      showToast("🔑 Please register/sign in at the Waitlist below to predict champions!");
+    if (!user.loggedIn && !canPredictFree) {
+      showToast("🔑 You've used all 5 free predictions! Please sign up to continue.");
+      const el = document.querySelector('#waitlist');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
       return;
     }
     if (!selectedChampion) {
@@ -368,9 +386,13 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
     setBalance((prev) => prev - outrightStake);
     setChampionBetPlaced(true);
 
+    if (!user.loggedIn) {
+      setFreePredictionsUsed((prev) => prev + 1);
+    }
+
     const newPred = {
       id: Date.now(),
-      user: { name: user.username, avatar: '🏆' },
+      user: { name: user.loggedIn ? user.username : 'Guest Predictor', avatar: '🏆' },
       category: 'Sports',
       categoryColor: 'from-green-400 to-emerald-500',
       title: `🏆 Outright: Staked ${outrightStake} PCOIN on ${selectedChampion} to win the FIFA World Cup 2026`,
@@ -384,12 +406,18 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
     };
 
     setPredictionsList((prev) => [newPred, ...prev]);
-    showToast(`🔮 Placed: ${selectedChampion} to win the World Cup!`);
+    if (!user.loggedIn) {
+      showToast(`🔮 Placed: ${selectedChampion} to win the World Cup! (${freeRemaining - 1} free left)`);
+    } else {
+      showToast(`🔮 Placed: ${selectedChampion} to win the World Cup!`);
+    }
   };
 
   const handlePlaceGoldenBootBet = () => {
-    if (!user.loggedIn) {
-      showToast("🔑 Please register/sign in at the Waitlist below to predict Golden Boot!");
+    if (!user.loggedIn && !canPredictFree) {
+      showToast("🔑 You've used all 5 free predictions! Please sign up to continue.");
+      const el = document.querySelector('#waitlist');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
       return;
     }
     if (!selectedGoldenBoot) {
@@ -404,9 +432,13 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
     setBalance((prev) => prev - outrightStake);
     setGoldenBootBetPlaced(true);
 
+    if (!user.loggedIn) {
+      setFreePredictionsUsed((prev) => prev + 1);
+    }
+
     const newPred = {
       id: Date.now(),
-      user: { name: user.username, avatar: '👟' },
+      user: { name: user.loggedIn ? user.username : 'Guest Predictor', avatar: '👟' },
       category: 'Sports',
       categoryColor: 'from-green-400 to-emerald-500',
       title: `🏆 Golden Boot: Staked ${outrightStake} PCOIN on ${selectedGoldenBoot} to win the FIFA World Cup Golden Boot`,
@@ -420,7 +452,11 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
     };
 
     setPredictionsList((prev) => [newPred, ...prev]);
-    showToast(`🔮 Placed: ${selectedGoldenBoot} to win Golden Boot!`);
+    if (!user.loggedIn) {
+      showToast(`🔮 Placed: ${selectedGoldenBoot} to win Golden Boot! (${freeRemaining - 1} free left)`);
+    } else {
+      showToast(`🔮 Placed: ${selectedGoldenBoot} to win Golden Boot!`);
+    }
   };
 
   return (
@@ -448,12 +484,12 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
           {/* Main Tournament Tabbed Info */}
           <div className="lg:col-span-2 space-y-6">
             
-            {/* Tab Controls */}
+            {/* Tab Controls — padded to 44px on mobile */}
             <div className="flex mb-4">
               <div className="glass p-1 rounded-xl flex gap-1 border border-white/5 w-full sm:w-auto">
                 <button
                   onClick={() => setActiveTab('matches')}
-                  className={`flex-1 sm:flex-none px-4 py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-300 ${
+                  className={`flex-1 sm:flex-none px-4 py-3 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-300 ${
                     activeTab === 'matches'
                       ? 'bg-emerald-500 text-dark-900 shadow-lg font-bold'
                       : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -463,7 +499,7 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
                 </button>
                 <button
                   onClick={() => setActiveTab('outrights')}
-                  className={`flex-1 sm:flex-none px-4 py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-300 ${
+                  className={`flex-1 sm:flex-none px-4 py-3 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-300 ${
                     activeTab === 'outrights'
                       ? 'bg-emerald-500 text-dark-900 shadow-lg font-bold'
                       : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -473,7 +509,7 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
                 </button>
                 <button
                   onClick={() => setActiveTab('standings')}
-                  className={`flex-1 sm:flex-none px-4 py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-300 ${
+                  className={`flex-1 sm:flex-none px-4 py-3 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-300 ${
                     activeTab === 'standings'
                       ? 'bg-emerald-500 text-dark-900 shadow-lg font-bold'
                       : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -546,14 +582,14 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
                       </div>
                     </div>
 
-                    {/* Betting Options */}
+                    {/* Betting Options — padded to 44px touch height on mobile */}
                     <div className="mt-3 pt-3 border-t border-white/5">
                       <p className="text-[10px] text-slate-500 font-semibold mb-2">Outcome Odds:</p>
                       <div className="grid grid-cols-3 gap-1.5">
                         <button
                           onClick={() => handleOpenBet(match, 'Home')}
                           disabled={match.status !== 'LIVE' || !!match.predicted}
-                          className={`py-2 px-1 rounded-lg text-xs font-bold flex flex-col items-center gap-0.5 transition-all ${
+                          className={`py-3 sm:py-2 px-1 rounded-lg text-xs font-bold flex flex-col items-center gap-0.5 transition-all ${
                             match.predicted === 'Home'
                               ? 'bg-emerald-500 text-dark-900 scale-95 shadow-inner'
                               : match.status !== 'LIVE'
@@ -567,7 +603,7 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
                         <button
                           onClick={() => handleOpenBet(match, 'Draw')}
                           disabled={match.status !== 'LIVE' || !!match.predicted}
-                          className={`py-2 px-1 rounded-lg text-xs font-bold flex flex-col items-center gap-0.5 transition-all ${
+                          className={`py-3 sm:py-2 px-1 rounded-lg text-xs font-bold flex flex-col items-center gap-0.5 transition-all ${
                             match.predicted === 'Draw'
                               ? 'bg-emerald-500 text-dark-900 scale-95 shadow-inner'
                               : match.status !== 'LIVE'
@@ -581,7 +617,7 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
                         <button
                           onClick={() => handleOpenBet(match, 'Away')}
                           disabled={match.status !== 'LIVE' || !!match.predicted}
-                          className={`py-2 px-1 rounded-lg text-xs font-bold flex flex-col items-center gap-0.5 transition-all ${
+                          className={`py-3 sm:py-2 px-1 rounded-lg text-xs font-bold flex flex-col items-center gap-0.5 transition-all ${
                             match.predicted === 'Away'
                               ? 'bg-emerald-500 text-dark-900 scale-95 shadow-inner'
                               : match.status !== 'LIVE'
@@ -623,7 +659,7 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
                         key={c.country}
                         onClick={() => !championBetPlaced && setSelectedChampion(c.country)}
                         disabled={championBetPlaced}
-                        className={`w-full flex items-center justify-between p-2 rounded-lg border text-xs font-bold transition-all ${
+                        className={`w-full flex items-center justify-between py-3 px-2.5 sm:p-2 rounded-lg border text-xs font-bold transition-all ${
                           selectedChampion === c.country
                             ? 'bg-emerald-500/15 border-emerald-500 text-emerald-400'
                             : 'bg-dark-900/40 border-white/5 hover:border-white/10 text-slate-300'
@@ -659,7 +695,7 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
                       </div>
                       <button
                         onClick={handlePlaceChampionBet}
-                        className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-dark-900 font-bold py-2 px-3 rounded-lg text-xs transition-all"
+                        className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-dark-900 font-bold py-3 sm:py-2 px-3 rounded-lg text-xs transition-all"
                       >
                         Place Bet
                       </button>
@@ -680,7 +716,7 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
                         key={gb.player}
                         onClick={() => !goldenBootBetPlaced && setSelectedGoldenBoot(gb.player)}
                         disabled={goldenBootBetPlaced}
-                        className={`w-full flex items-center justify-between p-2 rounded-lg border text-xs font-bold transition-all ${
+                        className={`w-full flex items-center justify-between py-3 px-2.5 sm:p-2 rounded-lg border text-xs font-bold transition-all ${
                           selectedGoldenBoot === gb.player
                             ? 'bg-emerald-500/15 border-emerald-500 text-emerald-400'
                             : 'bg-dark-900/40 border-white/5 hover:border-white/10 text-slate-300'
@@ -719,7 +755,7 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
                       </div>
                       <button
                         onClick={handlePlaceGoldenBootBet}
-                        className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-dark-900 font-bold py-2 px-3 rounded-lg text-xs transition-all"
+                        className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-dark-900 font-bold py-3 sm:py-2 px-3 rounded-lg text-xs transition-all"
                       >
                         Place Bet
                       </button>
@@ -830,7 +866,7 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
       {/* Stake Modal Overlay */}
       {bettingMatch && (
         <div className="fixed inset-0 bg-dark-900/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="glass rounded-3xl p-6 border border-emerald-500/20 max-w-md w-full animate-fade-in-up">
+          <div className="glass rounded-3xl p-6 border border-emerald-500/20 max-w-md w-full animate-fade-in-up max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Confirm Prediction</span>
@@ -838,7 +874,7 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
               </div>
               <button
                 onClick={() => setBettingMatch(null)}
-                className="text-slate-500 hover:text-white transition-colors"
+                className="text-slate-500 hover:text-white transition-colors p-2.5 -m-2.5"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -882,7 +918,7 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
                       type="button"
                       key={amt}
                       onClick={() => setBetStake(amt)}
-                      className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
+                      className={`flex-1 py-3 sm:py-2 rounded-xl text-xs font-bold transition-all ${
                         betStake === amt
                           ? 'bg-emerald-500 text-dark-900'
                           : 'bg-dark-900/60 border border-white/5 text-slate-400 hover:text-white'
