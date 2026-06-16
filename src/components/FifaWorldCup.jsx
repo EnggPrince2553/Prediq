@@ -137,6 +137,22 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
     ],
   };
 
+  function addLogEvent(text) {
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    setEventLog((prev) => [{ id: Date.now() + Math.random(), text, time: timeStr }, ...prev.slice(0, 19)]);
+  }
+
+  function getRandomScorer(team) {
+    const scorers = {
+      USA: ['Pulisic', 'Weah', 'Balogun', 'McKennie', 'Musah'],
+      Italy: ['Chiesa', 'Retegui', 'Barella', 'Pellegrini', 'Dimarco'],
+      Mexico: ['Gimenez', 'Quiñones', 'Lozano', 'Chavez', 'Alvarez'],
+      Germany: ['Musiala', 'Wirtz', 'Havertz', 'Füllkrug', 'Gündogan'],
+    };
+    const list = scorers[team] || ['Striker', 'Midfielder', 'Winger'];
+    return list[Math.floor(Math.random() * list.length)];
+  }
+
   // Match event generator and clock incrementer
   useEffect(() => {
     const interval = setInterval(() => {
@@ -268,23 +284,7 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
     }, 5000); // 5 seconds = 1 minute of match time
 
     return () => clearInterval(interval);
-  }, [setBalance, showToast, user]);
-
-  const addLogEvent = (text) => {
-    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    setEventLog((prev) => [{ id: Date.now() + Math.random(), text, time: timeStr }, ...prev.slice(0, 19)]);
-  };
-
-  const getRandomScorer = (team) => {
-    const scorers = {
-      USA: ['Pulisic', 'Weah', 'Balogun', 'McKennie', 'Musah'],
-      Italy: ['Chiesa', 'Retegui', 'Barella', 'Pellegrini', 'Dimarco'],
-      Mexico: ['Gimenez', 'Quiñones', 'Lozano', 'Chavez', 'Alvarez'],
-      Germany: ['Musiala', 'Wirtz', 'Havertz', 'Füllkrug', 'Gündogan'],
-    };
-    const list = scorers[team] || ['Striker', 'Midfielder', 'Winger'];
-    return list[Math.floor(Math.random() * list.length)];
-  };
+  }, [setBalance, showToast, user, setPredictionsList]);
 
   const handleOpenBet = (match, outcome) => {
     if (match.predicted) {

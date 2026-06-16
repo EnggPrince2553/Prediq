@@ -1,12 +1,6 @@
 import { heroCards } from '../data/mockData';
 
 export default function Hero({ onJoinClick, onClaimClick }) {
-  const handleScroll = (e, href) => {
-    e.preventDefault();
-    const el = document.querySelector(href);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
-
   return (
     <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden dot-grid">
       {/* Background Blobs */}
