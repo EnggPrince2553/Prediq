@@ -9,6 +9,7 @@ import Communities from './components/Communities';
 import Leaderboard from './components/Leaderboard';
 import WaitlistForm from './components/WaitlistForm';
 import Footer from './components/Footer';
+import FifaWorldCup from './components/FifaWorldCup';
 import { predictions as initialPredictions } from './data/mockData';
 
 function App() {
@@ -197,6 +198,14 @@ function App() {
           likedCards={likedCards}
           setLikedCards={setLikedCards}
           resolvePrediction={resolvePrediction}
+          user={user}
+        />
+        
+        <FifaWorldCup
+          balance={balance}
+          setBalance={setBalance}
+          setPredictionsList={setPredictionsList}
+          showToast={showToast}
           user={user}
         />
         

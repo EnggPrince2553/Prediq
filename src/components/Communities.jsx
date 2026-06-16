@@ -23,7 +23,7 @@ export default function Communities({ onCommunityClick }) {
             <div
               key={i}
               onClick={() => onCommunityClick && onCommunityClick(community.name)}
-              className={`glass rounded-3xl p-6 card-hover border ${community.borderColor} group cursor-pointer`}
+              className={`glass rounded-3xl p-6 card-hover border ${community.borderColor} bg-gradient-to-br ${community.color} group cursor-pointer`}
             >
               {/* Header */}
               <div className="flex items-center gap-3 mb-4">
