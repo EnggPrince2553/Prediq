@@ -59,6 +59,94 @@ function App() {
     }
   }, []);
 
+  // Helper to format time ago
+  const formatTimeAgo = (date) => {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    if (seconds < 60) return 'Just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return date.toLocaleDateString();
+  };
+
+  // Sync predictions from backend DB
+  useEffect(() => {
+    const fetchPredictions = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/predictions');
+        if (res.ok) {
+          const dbPreds = await res.json();
+          const mappedDbPreds = dbPreds.map((pred) => ({
+            id: pred._id,
+            user: { name: pred.username, avatar: '👤' },
+            category: pred.category,
+            categoryColor: pred.categoryColor,
+            title: pred.title,
+            confidence: pred.confidence,
+            streak: 0,
+            likes: pred.likes || 0,
+            comments: pred.comments || 0,
+            timeAgo: pred.createdAt ? formatTimeAgo(new Date(pred.createdAt)) : 'Just now',
+            stake: pred.stake,
+            isUserOwned: user.loggedIn && pred.username === user.username,
+            resolved: pred.resolved,
+            result: pred.result,
+          }));
+
+          const filteredMocks = initialPredictions.filter(
+            (mock) => !mappedDbPreds.some((db) => db.title === mock.title)
+          );
+          setPredictionsList([...mappedDbPreds, ...filteredMocks]);
+        }
+      } catch (err) {
+        console.error('Failed to sync predictions feed:', err);
+      }
+    };
+    fetchPredictions();
+  }, [user.loggedIn, user.username]);
+
+  // Load user session and sync balance from backend
+  useEffect(() => {
+    const localSession = localStorage.getItem('prediq_user');
+    if (localSession) {
+      try {
+        const parsed = JSON.parse(localSession);
+        if (parsed.username) {
+          fetch(`http://localhost:5000/api/users/${parsed.username}`)
+            .then((res) => {
+              if (res.ok) return res.json();
+              throw new Error('User sync failed');
+            })
+            .then((dbUser) => {
+              setUser({ loggedIn: true, username: dbUser.username, email: dbUser.email });
+              setBalance(dbUser.balance);
+            })
+            .catch(() => {
+              localStorage.removeItem('prediq_user');
+            });
+        }
+      } catch (err) {
+        console.error('Error parsing local user session:', err);
+      }
+    }
+  }, []);
+
+  // Sync prediction likes to backend DB
+  const handleLike = async (id) => {
+    setLikedCards((prev) => ({ ...prev, [id]: !prev[id] }));
+
+    if (typeof id === 'string' && id.length === 24) {
+      try {
+        await fetch(`http://localhost:5000/api/predictions/${id}/like`, {
+          method: 'POST',
+        });
+      } catch (err) {
+        console.error('Failed to sync like:', err);
+      }
+    }
+  };
+
   useEffect(() => {
     const handleClick = (e) => {
       const btn = e.target.closest('a, button');
@@ -94,19 +182,24 @@ function App() {
   };
 
   // Register user from WaitlistForm
-  const logInUser = (username, email) => {
-    setUser({ loggedIn: true, username, email });
-    showToast(`Welcome @${username}! Claimed 5,000 PCOIN starting balance. 🚀`);
+  const logInUser = (dbUser) => {
+    setUser({ loggedIn: true, username: dbUser.username, email: dbUser.email });
+    setBalance(dbUser.balance);
+    localStorage.setItem('prediq_user', JSON.stringify({ username: dbUser.username, email: dbUser.email }));
+    showToast(`Welcome @${dbUser.username}! Loaded your balance of ${dbUser.balance.toLocaleString()} PCOIN. 🚀`);
   };
 
   // Handle new prediction creation
-  const handleCreatePrediction = (predictionData) => {
+  const handleCreatePrediction = async (predictionData) => {
+    if (!user.loggedIn) {
+      showToast("🔒 Please sign up / log in to place predictions!");
+      return;
+    }
+
     if (balance < predictionData.stake) {
       showToast("❌ Insufficient PCOIN balance!");
       return;
     }
-
-    setBalance((prev) => prev - predictionData.stake);
 
     const categoryGradients = {
       Crypto: 'from-yellow-500 to-orange-500',
@@ -117,40 +210,91 @@ function App() {
       Tech: 'from-cyan-400 to-blue-500',
     };
 
-    const newPred = {
-      id: Date.now(),
-      user: { name: user.username, avatar: '👤' },
-      category: predictionData.category,
-      categoryColor: categoryGradients[predictionData.category] || 'from-emerald-400 to-green-500',
-      title: predictionData.title,
-      confidence: parseInt(predictionData.confidence),
-      streak: 0,
-      likes: 0,
-      comments: 0,
-      timeAgo: 'Just now',
-      stake: predictionData.stake,
-      isUserOwned: true,
-    };
+    try {
+      const res = await fetch('http://localhost:5000/api/predictions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: user.username,
+          category: predictionData.category,
+          categoryColor: categoryGradients[predictionData.category] || 'from-emerald-400 to-green-500',
+          title: predictionData.title,
+          confidence: parseInt(predictionData.confidence),
+          stake: parseInt(predictionData.stake),
+        }),
+      });
 
-    setPredictionsList((prev) => [newPred, ...prev]);
-    setIsModalOpen(false);
-    showToast(`🔮 Prediction created! Staked ${predictionData.stake} PCOIN.`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || 'Failed to create prediction');
+      }
+
+      const result = await res.json();
+      const newPred = {
+        id: result.prediction._id,
+        user: { name: user.username, avatar: '👤' },
+        category: result.prediction.category,
+        categoryColor: result.prediction.categoryColor,
+        title: result.prediction.title,
+        confidence: result.prediction.confidence,
+        streak: 0,
+        likes: 0,
+        comments: 0,
+        timeAgo: 'Just now',
+        stake: result.prediction.stake,
+        isUserOwned: true,
+      };
+
+      setPredictionsList((prev) => [newPred, ...prev]);
+      setBalance(result.user.balance);
+      setIsModalOpen(false);
+      showToast(`🔮 Prediction created! Staked ${predictionData.stake} PCOIN.`);
+    } catch (err) {
+      showToast(`❌ Error: ${err.message}`);
+    }
   };
 
   // Resolve prediction (Win/Loss)
-  const resolvePrediction = (id, won) => {
-    const pred = predictionsList.find((p) => p.id === id);
-    if (!pred) return;
-
-    if (won) {
-      const reward = pred.stake * 2;
-      setBalance((prev) => prev + reward);
-      showToast(`🏆 You won! Earned +${reward} PCOIN on prediction.`);
-    } else {
-      showToast(`😢 Prediction resolved as Loss. Lost ${pred.stake} PCOIN stake.`);
+  const resolvePrediction = async (id, won) => {
+    // If it's a mock prediction (numeric ID from Date.now), resolve client-side only
+    if (typeof id === 'number') {
+      const pred = predictionsList.find((p) => p.id === id);
+      if (!pred) return;
+      if (won) {
+        const reward = pred.stake * 2;
+        setBalance((prev) => prev + reward);
+        showToast(`🏆 You won! Earned +${reward} PCOIN on prediction.`);
+      } else {
+        showToast(`😢 Prediction resolved as Loss. Lost ${pred.stake} PCOIN stake.`);
+      }
+      setPredictionsList((prev) => prev.filter((p) => p.id !== id));
+      return;
     }
 
-    setPredictionsList((prev) => prev.filter((p) => p.id !== id));
+    try {
+      const res = await fetch(`http://localhost:5000/api/predictions/${id}/resolve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ won }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || 'Failed to resolve prediction');
+      }
+
+      const result = await res.json();
+      setBalance(result.user.balance);
+      setPredictionsList((prev) => prev.filter((p) => p.id !== id));
+
+      if (won) {
+        showToast(`🏆 You won! Earned +${result.prediction.stake * 2} PCOIN.`);
+      } else {
+        showToast(`😢 Prediction resolved as Loss. Lost ${result.prediction.stake} PCOIN.`);
+      }
+    } catch (err) {
+      showToast(`❌ Error: ${err.message}`);
+    }
   };
 
   const handleJoinClick = (e) => {
@@ -202,6 +346,7 @@ function App() {
           setLikedCards={setLikedCards}
           resolvePrediction={resolvePrediction}
           user={user}
+          onLike={handleLike}
         />
         
         <FifaWorldCup

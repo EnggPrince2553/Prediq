@@ -1,52 +1,65 @@
-import { leaderboard as initialLeaderboard } from '../data/mockData';
+import { useState, useEffect } from 'react';
+import { leaderboard as mockLeaderboard } from '../data/mockData';
 
 export default function Leaderboard({ user, balance }) {
-  let list = [...initialLeaderboard];
+  const [liveList, setLiveList] = useState(null); // null = loading
+  const [error, setError]       = useState(false);
 
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchLeaderboard() {
+      try {
+        const res = await fetch('http://localhost:5000/api/users/leaderboard');
+        if (!res.ok) throw new Error('Bad response');
+        const data = await res.json();
+        if (!cancelled) setLiveList(data);
+      } catch {
+        if (!cancelled) setError(true);
+      }
+    }
+    fetchLeaderboard();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Build the display list
+  let list = liveList
+    ? [...liveList]         // use live DB data
+    : [...mockLeaderboard]; // fallback to mock while loading
+
+  // Always inject / update the current logged-in user in the list
   if (user && user.loggedIn) {
-    const userRep = Math.max(5000 + (balance - 1000) * 5, 0);
+    const userRep = user.reputation ?? Math.max(5000 + (balance - 1000) * 5, 0);
     const userRecord = {
       rank: null,
       name: `@${user.username}`,
       avatar: '👤',
       reputation: userRep,
-      accuracy: 100,
-      streak: balance > 1000 ? Math.floor((balance - 1000) / 100) : 0,
-      badges: ['🏅'],
-      level: userRep >= 8000 ? 'Expert' : userRep >= 6000 ? 'Advanced' : 'New Predictor',
-      levelColor: userRep >= 8000 ? 'text-cyan-400' : userRep >= 6000 ? 'text-green-400' : 'text-slate-400',
+      accuracy: user.accuracy ?? 85,
+      streak: user.streak ?? 0,
+      badges: userRep >= 8000 ? ['🏆', '🔥', '⭐'] : userRep >= 4000 ? ['🥇', '🔥'] : ['🏅'],
+      level: userRep >= 8000 ? 'Expert' : userRep >= 4000 ? 'Advanced' : 'New Predictor',
+      levelColor:
+        userRep >= 8000 ? 'text-cyan-400' : userRep >= 4000 ? 'text-green-400' : 'text-slate-400',
     };
-
+    // Remove stale entry for this user (if any) before inserting fresh one
     list = list.filter((item) => item.name !== `@${user.username}`);
     list.push(userRecord);
   }
 
-  // Sort list by reputation descending
+  // Sort by reputation descending & re-rank
   list.sort((a, b) => b.reputation - a.reputation);
-
-  // Reassign ranks
   const rankedList = list.map((item, idx) => ({ ...item, rank: idx + 1 }));
 
   const topThree = rankedList.slice(0, 3);
-  const rest = rankedList.slice(3);
+  const rest     = rankedList.slice(3);
 
-  const rankColors = [
-    'from-yellow-400 to-amber-500',   // Gold
-    'from-slate-300 to-slate-400',     // Silver
-    'from-amber-600 to-orange-700',    // Bronze
+  const rankColors  = [
+    'from-yellow-400 to-amber-500',
+    'from-slate-300 to-slate-400',
+    'from-amber-600 to-orange-700',
   ];
-
-  const rankBorders = [
-    'border-yellow-500/40',
-    'border-slate-400/30',
-    'border-amber-600/30',
-  ];
-
-  const rankGlows = [
-    'shadow-yellow-500/10',
-    'shadow-slate-400/10',
-    'shadow-amber-600/10',
-  ];
+  const rankBorders = ['border-yellow-500/40', 'border-slate-400/30', 'border-amber-600/30'];
+  const rankGlows   = ['shadow-yellow-500/10', 'shadow-slate-400/10', 'shadow-amber-600/10'];
 
   return (
     <section id="leaderboard" className="relative section-padding overflow-hidden">
@@ -63,50 +76,63 @@ export default function Leaderboard({ user, balance }) {
           <p className="text-slate-400 text-lg max-w-2xl mx-auto">
             The most accurate minds on Prediq. Climb the ranks with consistency and conviction.
           </p>
+          {/* Live / Loading badge */}
+          <span className={`inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full text-xs font-semibold ${
+            error
+              ? 'bg-red-500/10 text-red-400'
+              : liveList === null
+              ? 'bg-slate-700/50 text-slate-400'
+              : 'bg-green-500/10 text-green-400'
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${
+              error ? 'bg-red-400' : liveList === null ? 'bg-slate-500 animate-pulse' : 'bg-green-400'
+            }`} />
+            {error ? 'Using cached data' : liveList === null ? 'Loading live data…' : 'Live rankings'}
+          </span>
         </div>
 
         {/* Top 3 Podium */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          {topThree.map((user, i) => (
+          {topThree.map((u, i) => (
             <div
-              key={user.rank}
+              key={u.rank}
               className={`glass rounded-3xl p-6 text-center card-hover border ${rankBorders[i]} shadow-lg ${rankGlows[i]} ${
                 i === 0 ? 'sm:order-2 sm:-mt-4' : i === 1 ? 'sm:order-1' : 'sm:order-3'
-              }`}
+              } ${u.name === `@${user?.username}` ? 'ring-2 ring-neon-cyan/40' : ''}`}
             >
               {/* Rank Badge */}
               <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${rankColors[i]} flex items-center justify-center text-dark-900 font-extrabold text-sm mx-auto mb-3`}>
-                #{user.rank}
+                #{u.rank}
               </div>
 
               {/* Avatar */}
               <div className="w-16 h-16 rounded-full bg-dark-700 border-2 border-white/10 flex items-center justify-center text-3xl mx-auto mb-3">
-                {user.avatar}
+                {u.avatar}
               </div>
 
               {/* Name & Level */}
-              <h3 className="text-white font-bold text-lg mb-1">{user.name}</h3>
-              <p className={`text-xs font-semibold ${user.levelColor} mb-3`}>{user.level}</p>
+              <h3 className="text-white font-bold text-lg mb-1">{u.name}</h3>
+              <p className={`text-xs font-semibold ${u.levelColor} mb-3`}>{u.level}</p>
 
               {/* Stats */}
               <div className="grid grid-cols-3 gap-2 py-3 border-y border-white/5 mb-3">
                 <div>
-                  <p className="text-lg font-bold text-neon-cyan">{user.reputation.toLocaleString()}</p>
+                  <p className="text-lg font-bold text-neon-cyan">{u.reputation.toLocaleString()}</p>
                   <p className="text-xs text-slate-500">Rep</p>
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-neon-purple">{user.accuracy}%</p>
+                  <p className="text-lg font-bold text-neon-purple">{u.accuracy}%</p>
                   <p className="text-xs text-slate-500">Accuracy</p>
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-orange-400">{user.streak}🔥</p>
+                  <p className="text-lg font-bold text-orange-400">{u.streak}🔥</p>
                   <p className="text-xs text-slate-500">Streak</p>
                 </div>
               </div>
 
               {/* Badges */}
               <div className="flex justify-center gap-1.5">
-                {user.badges.map((badge, j) => (
+                {u.badges.map((badge, j) => (
                   <span key={j} className="text-lg">{badge}</span>
                 ))}
               </div>
@@ -116,53 +142,57 @@ export default function Leaderboard({ user, balance }) {
 
         {/* Remaining Rankings */}
         <div className="glass rounded-2xl overflow-hidden">
-          {rest.map((user, i) => (
+          {rest.map((u, i) => (
             <div
-              key={user.rank}
+              key={u.rank}
               className={`flex items-center gap-4 px-5 py-4 hover:bg-white/[0.02] transition-colors ${
                 i !== rest.length - 1 ? 'border-b border-white/5' : ''
-              }`}
+              } ${u.name === `@${user?.username}` ? 'bg-neon-cyan/5' : ''}`}
             >
               {/* Rank */}
-              <span className="text-sm font-bold text-slate-500 w-8 text-center">
-                #{user.rank}
-              </span>
+              <span className="text-sm font-bold text-slate-500 w-8 text-center">#{u.rank}</span>
 
               {/* Avatar */}
               <div className="w-10 h-10 rounded-full bg-dark-700 border border-white/10 flex items-center justify-center text-xl flex-shrink-0">
-                {user.avatar}
+                {u.avatar}
               </div>
 
               {/* Name & Level */}
               <div className="flex-1 min-w-0">
-                <p className="text-white font-semibold text-sm truncate">{user.name}</p>
-                <p className={`text-xs ${user.levelColor}`}>{user.level}</p>
+                <p className="text-white font-semibold text-sm truncate">{u.name}</p>
+                <p className={`text-xs ${u.levelColor}`}>{u.level}</p>
               </div>
 
-              {/* Stats — hidden on mobile, shown on sm+ */}
+              {/* Stats */}
               <div className="hidden sm:flex items-center gap-6">
                 <div className="text-center">
-                  <p className="text-sm font-bold text-neon-cyan">{user.reputation.toLocaleString()}</p>
+                  <p className="text-sm font-bold text-neon-cyan">{u.reputation.toLocaleString()}</p>
                   <p className="text-xs text-slate-600">Rep</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-sm font-bold text-neon-purple">{user.accuracy}%</p>
+                  <p className="text-sm font-bold text-neon-purple">{u.accuracy}%</p>
                   <p className="text-xs text-slate-600">Acc</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-sm font-bold text-orange-400">{user.streak}🔥</p>
+                  <p className="text-sm font-bold text-orange-400">{u.streak}🔥</p>
                   <p className="text-xs text-slate-600">Streak</p>
                 </div>
               </div>
 
               {/* Badges */}
               <div className="flex gap-1">
-                {user.badges.map((badge, j) => (
+                {u.badges.map((badge, j) => (
                   <span key={j} className="text-base">{badge}</span>
                 ))}
               </div>
             </div>
           ))}
+
+          {rest.length === 0 && (
+            <p className="text-center text-slate-500 py-10 text-sm">
+              No other predictors yet — be the first to rise through the ranks! 🚀
+            </p>
+          )}
         </div>
       </div>
     </section>

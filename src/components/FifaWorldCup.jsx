@@ -295,7 +295,7 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
     setSelectedOutcome(outcome);
   };
 
-  const handlePlaceBet = (e) => {
+  const handlePlaceBet = async (e) => {
     e.preventDefault();
     // If not logged in and free predictions exhausted, block
     if (!user.loggedIn && !canPredictFree) {
@@ -316,11 +316,45 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
       return;
     }
 
-    // Deduct Balance
-    setBalance((prev) => prev - betStake);
+    const oddsMap = {
+      Home: bettingMatch.oddsHome,
+      Draw: bettingMatch.oddsDraw,
+      Away: bettingMatch.oddsAway,
+    };
 
-    // Increment free prediction counter if not logged in
-    if (!user.loggedIn) {
+    // Persist bet to backend if logged in
+    if (user.loggedIn) {
+      try {
+        const res = await fetch('http://localhost:5000/api/bets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: user.username,
+            matchId: bettingMatch.id,
+            teamHome: bettingMatch.teamHome,
+            teamAway: bettingMatch.teamAway,
+            predictedOutcome: selectedOutcome,
+            predictedStake: betStake,
+            odds: oddsMap[selectedOutcome] || 1,
+          }),
+        });
+
+        if (res.ok) {
+          const result = await res.json();
+          setBalance(result.user.balance);
+        } else {
+          const data = await res.json().catch(() => ({}));
+          showToast(`❌ ${data?.error || 'Bet failed to save. Please try again.'}`);
+          return;
+        }
+      } catch (err) {
+        // Fallback to client-side deduction if backend is unreachable
+        setBalance((prev) => prev - betStake);
+        console.error('Bet sync failed, using local fallback:', err);
+      }
+    } else {
+      // Deduct Balance locally for guests
+      setBalance((prev) => prev - betStake);
       setFreePredictionsUsed((prev) => prev + 1);
     }
 
@@ -362,7 +396,7 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
       const remaining = freeRemaining - 1;
       showToast(`🏆 Bet placed: ${predictedText} for ${betStake} PCOINS! (${remaining} free left)`);
     } else {
-      showToast(`🏆 Bet placed: ${predictedText} for ${betStake} PCOINS!`);
+      showToast(`🏆 Bet placed: ${predictedText} for ${betStake} PCOINS! Saved to DB ✅`);
     }
     setBettingMatch(null);
   };

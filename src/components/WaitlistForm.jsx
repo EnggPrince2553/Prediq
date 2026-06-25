@@ -39,9 +39,32 @@ export default function WaitlistForm({ user, logInUser }) {
     setLoading(true);
 
     try {
+      // ── Register / Login in Backend DB ───────────────────────────
+      const authRes = await fetch('http://localhost:5000/api/auth/login-register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: trimmedUsername, email: formData.email }),
+      });
+
+      if (!authRes.ok) {
+        const authData = await authRes.json().catch(() => ({}));
+        throw new Error(authData?.error || 'Registration failed. Please try again.');
+      }
+
+      const dbUser = await authRes.json();
+
+      // ── Register waitlist in Backend DB ──────────────────────────
+      await fetch('http://localhost:5000/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: trimmedUsername, email: formData.email }),
+      }).catch(() => {
+        // Silently ignore if already waitlisted, since auth succeeded
+      });
+
       // ── Send to Formspree (real email collection) ────────────────
       if (FORMSPREE_URL) {
-        const res = await fetch(FORMSPREE_URL, {
+        await fetch(FORMSPREE_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
           body: JSON.stringify({
@@ -49,12 +72,7 @@ export default function WaitlistForm({ user, logInUser }) {
             username: trimmedUsername,
             timestamp: new Date().toISOString(),
           }),
-        });
-
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data?.error || 'Submission failed. Please try again.');
-        }
+        }).catch(() => {});
       }
 
       // ── localStorage backup (always runs) ────────────────────────
@@ -80,7 +98,7 @@ export default function WaitlistForm({ user, logInUser }) {
       }
 
       setSubmitted(true);
-      logInUser(trimmedUsername, formData.email);
+      logInUser(dbUser);
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {

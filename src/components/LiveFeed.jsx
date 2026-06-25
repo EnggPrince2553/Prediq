@@ -1,6 +1,10 @@
-export default function LiveFeed({ predictionsList, likedCards, setLikedCards, resolvePrediction, user, activeCategory, setActiveCategory }) {
+export default function LiveFeed({ predictionsList, likedCards, setLikedCards, resolvePrediction, user, activeCategory, setActiveCategory, onLike }) {
   const toggleLike = (id) => {
-    setLikedCards((prev) => ({ ...prev, [id]: !prev[id] }));
+    if (onLike) {
+      onLike(id);
+    } else {
+      setLikedCards((prev) => ({ ...prev, [id]: !prev[id] }));
+    }
   };
 
   const handleShare = () => {
