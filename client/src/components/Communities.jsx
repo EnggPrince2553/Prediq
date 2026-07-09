@@ -12,7 +12,7 @@ export default function Communities({ onCommunityClick, user }) {
   // Fetch live community counts on mount
   useEffect(() => {
     let cancelled = false;
-    fetch('http://localhost:5000/api/communities')
+    fetch(`${import.meta.env.VITE_API_URL}/api/communities`)
       .then((r) => r.json())
       .then((data) => {
         if (cancelled || !Array.isArray(data)) return;
@@ -29,7 +29,7 @@ export default function Communities({ onCommunityClick, user }) {
     setJoining(communityName);
     try {
       const res = await fetch(
-        `http://localhost:5000/api/communities/${encodeURIComponent(communityName)}/join`,
+        `${import.meta.env.VITE_API_URL}/api/communities/${encodeURIComponent(communityName)}/join`,
         { method: 'POST' }
       );
       if (res.ok) {

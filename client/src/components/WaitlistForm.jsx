@@ -40,7 +40,7 @@ export default function WaitlistForm({ user, logInUser }) {
 
     try {
       // ── Register / Login in Backend DB ───────────────────────────
-      const authRes = await fetch('http://localhost:5000/api/auth/login-register', {
+      const authRes = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login-register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: trimmedUsername, email: formData.email }),
@@ -54,7 +54,7 @@ export default function WaitlistForm({ user, logInUser }) {
       const dbUser = await authRes.json();
 
       // ── Register waitlist in Backend DB ──────────────────────────
-      await fetch('http://localhost:5000/api/waitlist', {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/waitlist`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: trimmedUsername, email: formData.email }),

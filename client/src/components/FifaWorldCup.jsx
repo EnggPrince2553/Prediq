@@ -325,7 +325,7 @@ export default function FifaWorldCup({ balance, setBalance, setPredictionsList, 
     // Persist bet to backend if logged in
     if (user.loggedIn) {
       try {
-        const res = await fetch('http://localhost:5000/api/bets', {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/bets`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

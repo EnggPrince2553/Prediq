@@ -9,7 +9,7 @@ export default function Leaderboard({ user, balance }) {
     let cancelled = false;
     async function fetchLeaderboard() {
       try {
-        const res = await fetch('http://localhost:5000/api/users/leaderboard');
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/leaderboard`);
         if (!res.ok) throw new Error('Bad response');
         const data = await res.json();
         if (!cancelled) setLiveList(data);

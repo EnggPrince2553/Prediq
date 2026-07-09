@@ -74,7 +74,7 @@ function App() {
   useEffect(() => {
     const fetchPredictions = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/predictions');
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/predictions`);
         if (res.ok) {
           const dbPreds = await res.json();
           const mappedDbPreds = dbPreds.map((pred) => ({
@@ -113,7 +113,7 @@ function App() {
       try {
         const parsed = JSON.parse(localSession);
         if (parsed.username) {
-          fetch(`http://localhost:5000/api/users/${parsed.username}`)
+          fetch(`${import.meta.env.VITE_API_URL}/api/users/${parsed.username}`)
             .then((res) => {
               if (res.ok) return res.json();
               throw new Error('User sync failed');
@@ -138,7 +138,7 @@ function App() {
 
     if (typeof id === 'string' && id.length === 24) {
       try {
-        await fetch(`http://localhost:5000/api/predictions/${id}/like`, {
+        await fetch(`${import.meta.env.VITE_API_URL}/api/predictions/${id}/like`, {
           method: 'POST',
         });
       } catch (err) {
@@ -211,7 +211,7 @@ function App() {
     };
 
     try {
-      const res = await fetch('http://localhost:5000/api/predictions', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/predictions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -272,7 +272,7 @@ function App() {
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/predictions/${id}/resolve`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/predictions/${id}/resolve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ won }),
